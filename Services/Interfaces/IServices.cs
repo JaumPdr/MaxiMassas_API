@@ -14,6 +14,7 @@ public interface IAuthService
     Task<LoginResponseDto> LoginAsync(LoginRequestDto dto);
     Task<UsuarioResponseDto> RegistrarAsync(RegistrarUsuarioDto dto);
     Task<IEnumerable<UsuarioResponseDto>> GetUsuariosAsync();
+    Task<bool> TemUsuariosCadastradosAsync();
 }
 
 // ─── Cliente ─────────────────────────────────────────────────────────────────

@@ -139,3 +139,5 @@ C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\refint\MaxiMassas.dll
 C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\MaxiMassas.pdb
 C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\MaxiMassas.genruntimeconfig.cache
 C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\ref\MaxiMassas.dll
+C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\MaxiMassas.sourcelink.json
+C:\Projetos\MaxiMassas_API\MaxiMassas\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

@@ -65,6 +65,12 @@ public class AuthService : IAuthService
         return usuarios.Select(MapToDto);
     }
 
+    public async Task<bool> TemUsuariosCadastradosAsync()
+    {
+        var todos = await _usuarioRepository.GetAllAsync();
+        return todos.Any();
+    }
+
     private string GerarToken(Usuario usuario)
     {
         var chave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));

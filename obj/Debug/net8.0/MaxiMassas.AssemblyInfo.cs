@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MaxiMassas")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb3e0c6ea91bd403fbc05fe96ca1d76fe42e9365")]
 [assembly: System.Reflection.AssemblyProductAttribute("MaxiMassas")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MaxiMassas")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -17,7 +17,10 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    /// <summary>Realiza login e retorna o token JWT.</summary>
+    /// <summary>
+    /// Realiza login e retorna o token JWT.
+    /// Use o token retornado no botão "Authorize" do Swagger no formato: Bearer {token}
+    /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
@@ -35,13 +38,22 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>Registra um novo usuário do sistema.</summary>
+    /// <summary>
+    /// Registra um novo usuário do sistema.
+    /// Requer autenticação JWT (exceto quando não há nenhum usuário cadastrado).
+    /// </summary>
     [HttpPost("registrar")]
-    [AllowAnonymous]
+    [AllowAnonymous] // Validação de auth feita manualmente abaixo para permitir o primeiro cadastro
     [ProducesResponseType(typeof(UsuarioResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Registrar([FromBody] RegistrarUsuarioDto dto)
     {
+        // Permite cadastro sem token apenas se não existir nenhum usuário (bootstrap)
+        bool temUsuarios = await _authService.TemUsuariosCadastradosAsync();
+        if (temUsuarios && !User.Identity!.IsAuthenticated)
+            return Forbid();
+
         try
         {
             var usuario = await _authService.RegistrarAsync(dto);

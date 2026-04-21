@@ -1,6 +1,7 @@
 using System.Text;
 using MaxiMassas.Config;
 using MaxiMassas.Data;
+using MaxiMassas.Entities;
 using MaxiMassas.Repositories;
 using MaxiMassas.Repositories.Interfaces;
 using MaxiMassas.Services;
@@ -49,7 +50,7 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
+    options.SaveToken            = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -61,8 +62,23 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime         = true,
         ClockSkew                = TimeSpan.Zero
     };
-});
 
+    // Retorna 401 JSON em vez de redirecionar para login
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode  = 401;
+            context.Response.ContentType = "application/json";
+            var msg = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                mensagem = "Não autorizado. Faça POST /api/auth/login e use o token no botão Authorize do Swagger (formato: Bearer {token})."
+            });
+            return context.Response.WriteAsync(msg);
+        }
+    };
+});
 
 builder.Services.AddAuthorization();
 
@@ -93,13 +109,16 @@ builder.Services.AddSwaggerGen(c =>
         Description  = "Informe: Bearer {seu_token}",
         In           = ParameterLocation.Header,
         Type         = SecuritySchemeType.Http,
-        Scheme       = "bearer",
+        Scheme       = "Bearer",
         BearerFormat = "JWT",
         Reference    = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
     };
 
     c.AddSecurityDefinition("Bearer", securityScheme);
-    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    });
 
     // Incluir comentários XML
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -119,11 +138,26 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Migrations automáticas ao subir ─────────────────────────────────────────
+// ─── Migrations + Seed do primeiro usuário admin ──────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+
+    // Cria o primeiro usuário admin caso o banco esteja vazio
+    if (!db.Usuarios.Any())
+    {
+        db.Usuarios.Add(new Usuario
+        {
+            Nome      = "Administrador",
+            Email     = "admin@maximassas.com",
+            SenhaHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+            Ativo     = true,
+            CriadoEm = DateTime.UtcNow
+        });
+        db.SaveChanges();
+        Console.WriteLine(">>> Usuário admin criado: admin@maximassas.com / senha: admin123");
+    }
 }
 
 // ─── Middleware Pipeline ──────────────────────────────────────────────────────
