@@ -11,26 +11,30 @@ namespace MaxiMassas.Controllers;
 [Produces("application/json")]
 public class VendasController : ControllerBase
 {
+    // Serviço responsável pelas regras de negócio das vendas
     private readonly IVendaService _vendaService;
 
+    // Injeta o serviço de vendas
     public VendasController(IVendaService vendaService)
     {
         _vendaService = vendaService;
     }
 
-    /// <summary>
-    /// Lista todas as vendas com itens, cliente e valores calculados.
-    /// Taxas aplicadas: Débito 1,37% | Crédito 3,15% | UAI Rango plataforma 13,5% | UAI Rango entrega 10%.
-    /// </summary>
+    // Lista todas as vendas com cliente, itens e valores calculados.
+    // Endpoint: GET api/vendas
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<VendaResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
+        // Busca todas as vendas cadastradas
         var vendas = await _vendaService.GetAllAsync();
+
+        // Retorna a lista de vendas
         return Ok(vendas);
     }
 
-    /// <summary>Busca uma venda completa pelo ID.</summary>
+    // Busca uma venda completa pelo ID.
+    // Endpoint: GET api/vendas/{id}
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(VendaResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,21 +42,21 @@ public class VendasController : ControllerBase
     {
         try
         {
+            // Busca venda pelo ID
             var venda = await _vendaService.GetByIdAsync(id);
+
+            // Retorna a venda encontrada
             return Ok(venda);
         }
         catch (KeyNotFoundException ex)
         {
+            // Retorna erro caso a venda não exista
             return NotFound(new { mensagem = ex.Message });
         }
     }
 
-    /// <summary>
-    /// Registra uma nova venda com múltiplos produtos.
-    /// Aplica desconto (valor ou percentual), calcula taxa e frete automaticamente.
-    /// Horário retirada: 10h-20h | Horário entrega: 18h-20h.
-    /// Desconta estoque automaticamente.
-    /// </summary>
+    // Registra uma nova venda com cálculos automáticos.
+    // Endpoint: POST api/vendas
     [HttpPost]
     [ProducesResponseType(typeof(VendaResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -61,24 +65,31 @@ public class VendasController : ControllerBase
     {
         try
         {
+            // Cria uma nova venda
             var venda = await _vendaService.CreateAsync(dto);
+
+            // Retorna a venda criada
             return CreatedAtAction(nameof(GetById), new { id = venda.Id }, venda);
         }
         catch (KeyNotFoundException ex)
         {
+            // Retorna erro caso cliente ou produto não exista
             return NotFound(new { mensagem = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
+            // Retorna erro de regra de negócio
             return BadRequest(new { mensagem = ex.Message });
         }
         catch (Exception ex)
         {
+            // Retorna erro genérico
             return BadRequest(new { mensagem = ex.Message });
         }
     }
 
-    /// <summary>Atualiza forma de pagamento, status, desconto e dados de entrega de uma venda.</summary>
+    // Atualiza dados da venda como pagamento, status e entrega.
+    // Endpoint: PUT api/vendas/{id}
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(VendaResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -87,20 +98,26 @@ public class VendasController : ControllerBase
     {
         try
         {
+            // Atualiza os dados da venda
             var venda = await _vendaService.UpdateAsync(id, dto);
+
+            // Retorna a venda atualizada
             return Ok(venda);
         }
         catch (KeyNotFoundException ex)
         {
+            // Retorna erro caso a venda não exista
             return NotFound(new { mensagem = ex.Message });
         }
         catch (Exception ex)
         {
+            // Retorna erro de validação ou erro genérico
             return BadRequest(new { mensagem = ex.Message });
         }
     }
 
-    /// <summary>Remove uma venda e devolve as quantidades ao estoque.</summary>
+    // Remove uma venda e devolve os itens ao estoque.
+    // Endpoint: DELETE api/vendas/{id}
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -108,11 +125,15 @@ public class VendasController : ControllerBase
     {
         try
         {
+            // Remove a venda e restaura o estoque
             await _vendaService.DeleteAsync(id);
+
+            // Retorna sucesso sem conteúdo
             return NoContent();
         }
         catch (KeyNotFoundException ex)
         {
+            // Retorna erro caso a venda não exista
             return NotFound(new { mensagem = ex.Message });
         }
     }

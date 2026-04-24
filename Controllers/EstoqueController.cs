@@ -11,23 +11,24 @@ namespace MaxiMassas.Controllers;
 [Produces("application/json")]
 public class EstoqueController : ControllerBase
 {
-    private readonly IEstoqueService _estoqueService;
+    private readonly IEstoqueService _estoqueService; // Serviço responsável pelas regras de negócio do estoque
 
+    // Injeta o serviço de estoque
     public EstoqueController(IEstoqueService estoqueService)
     {
         _estoqueService = estoqueService;
     }
 
-    /// <summary>Lista o estoque de todos os produtos com alerta quando quantidade &lt;= 3.</summary>
+    //Lista o estoque de todos os produtos com alerta quando quantidade <= 3
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<EstoqueResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var estoques = await _estoqueService.GetAllAsync();
+        var estoques = await _estoqueService.GetAllAsync(); // Busca todos os registros de estoque
         return Ok(estoques);
     }
 
-    /// <summary>Retorna o estoque de um produto específico.</summary>
+    //Retorna o estoque de um produto específico
     [HttpGet("produto/{produtoId:int}")]
     [ProducesResponseType(typeof(EstoqueResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -35,21 +36,22 @@ public class EstoqueController : ControllerBase
     {
         try
         {
-            var estoque = await _estoqueService.GetByProdutoIdAsync(produtoId);
+            var estoque = await _estoqueService.GetByProdutoIdAsync(produtoId); // Busca estoque do produto informado
             return Ok(estoque);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { mensagem = ex.Message });
+            return NotFound(new { mensagem = ex.Message }); // Retorna estoque encontrado
         }
     }
 
-    /// <summary>Retorna todos os produtos com estoque baixo (quantidade &lt;= 3). Alerta de reposição.</summary>
-    [HttpGet("alertas")]
+    //Retorna todos os produtos com estoque baixo (quantidade <= 3). Alerta de reposição
+    [HttpGet("alertas")] // Endpoint: GET api/estoque/alertas
     [ProducesResponseType(typeof(IEnumerable<EstoqueResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAlertas()
     {
-        var alertas = await _estoqueService.GetAlertasBaixoAsync();
+        var alertas = await _estoqueService.GetAlertasBaixoAsync(); // Busca produtos com estoque baixo
+        // Retorna quantidade de alertas e lista de produtos
         return Ok(new
         {
             totalAlertas = alertas.Count(),
@@ -57,7 +59,7 @@ public class EstoqueController : ControllerBase
         });
     }
 
-    /// <summary>Repõe estoque de um produto (soma à quantidade atual).</summary>
+    //Repõe estoque de um produto (soma à quantidade atual)
     [HttpPost("repor")]
     [ProducesResponseType(typeof(EstoqueResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -66,20 +68,20 @@ public class EstoqueController : ControllerBase
     {
         try
         {
-            var estoque = await _estoqueService.ReporAsync(dto);
+            var estoque = await _estoqueService.ReporAsync(dto); // Adiciona quantidade ao estoque atual
             return Ok(estoque);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { mensagem = ex.Message });
+            return NotFound(new { mensagem = ex.Message }); // Retorna erro caso produto não exista
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { mensagem = ex.Message });
+            return BadRequest(new { mensagem = ex.Message }); // Retorna erro de regra de negócio
         }
     }
 
-    /// <summary>Ajusta o estoque de um produto para um valor exato (correção manual).</summary>
+    //Ajusta o estoque de um produto para um valor exato (correção manual)
     [HttpPut("ajustar")]
     [ProducesResponseType(typeof(EstoqueResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -88,16 +90,16 @@ public class EstoqueController : ControllerBase
     {
         try
         {
-            var estoque = await _estoqueService.AjustarAsync(dto);
-            return Ok(estoque);
+            var estoque = await _estoqueService.AjustarAsync(dto); // Define uma quantidade exata para o estoque
+            return Ok(estoque); // Retorna estoque atualizado
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { mensagem = ex.Message });
+            return NotFound(new { mensagem = ex.Message }); // Retorna erro caso produto não exista
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { mensagem = ex.Message });
+            return BadRequest(new { mensagem = ex.Message }); // Retorna erro de regra de negócio
         }
     }
 }
